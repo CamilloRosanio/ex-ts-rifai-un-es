@@ -94,7 +94,7 @@ async function getChefBirthday(id: number): Promise<Date | string | undefined> {
   // Uso il TRY-CATCH perchè è qui che voglio intercettare il mio ERROR della fetch se si verifica.
   try {
     recipe = await fetchJson(`https://dummyjson.com/recipes/${id}`);
-    console.log('Ricetta:', recipe);
+    // console.log('Ricetta:', recipe);
   } catch (error) {
     throw new Error(`Impossibile recuperare la ricetta con Id: ${id}`);
   }
@@ -119,7 +119,7 @@ async function getChefBirthday(id: number): Promise<Date | string | undefined> {
 
   try {
     chef = await fetchJson(`https://dummyjson.com/users/${recipe.userId}`);
-    console.log('Chef:', chef);
+    // console.log('Chef:', chef);
   } catch (error) {
     throw new Error(`Impossibile recuperare lo Chef con Id: ${recipe.userId}`);
   }
@@ -136,20 +136,22 @@ async function getChefBirthday(id: number): Promise<Date | string | undefined> {
 
   // RESULT
   // Siccome "chef.birthDate" viene ancora considerato come "unknown", devo specificare che questo RETURN riceverà un valore di tipo STRING o DATE.
-  return dayjs(chef.birthDate as string | Date).format('DD/MM/YYYY');
+  const result = dayjs(chef.birthDate as string | Date).format('DD/MM/YYYY');
+  console.log(`Data di nascita dello chef con ID ${recipe.userId}: ${result}`)
+  return result;
 }
 
 
 
 // IIFE ( immediately invoked function expression )
-(async () => {
-  try {
-    const birthday = await getChefBirthday(1);
-    console.log('Data di nascita dello chef:', birthday);
-  } catch (error) {
-    console.error('Errore durante il recupero della data di nascita:', error);
-  }
-})();
+// (async () => {
+//   try {
+//     const birthday = await getChefBirthday(1);
+//     console.log('Data di nascita dello chef:', birthday);
+//   } catch (error) {
+//     console.error('Errore durante il recupero della data di nascita:', error);
+//   }
+// })();
 
 
 
@@ -158,12 +160,38 @@ async function getChefBirthday(id: number): Promise<Date | string | undefined> {
 
 function App() {
 
+  // STAMPA DINAMICA
+  /*
+  Tramite USE-STATE + USE-EFFECT raccolgo il dato della mia Fetch e lo imposto come State.
+  */
+  const [birthday, setBirthday] = useState<string | undefined>();
+  const [error, setError] = useState<string | undefined>();
+
+  useEffect(() => {
+    async function fetchBirthday() {
+      try {
+        const date = await getChefBirthday(1);
+        setBirthday(date as string);
+      } catch (error) {
+        console.error('Errore durante la Fetch:', error);
+        setError((error as Error).message);
+      }
+    }
+
+    fetchBirthday();
+  }, []);
 
   return (
     <>
-      {`Data di nascita dello chef: `}
+      {error ? (
+        <p>Errore: {error}</p>
+      ) : birthday ? (
+        <p>Data di nascita dello Chef: {birthday}</p>
+      ) : (
+        <p>Fetch in corso</p>
+      )}
     </>
-  )
+  );
 }
 
-export default App
+export default App;
