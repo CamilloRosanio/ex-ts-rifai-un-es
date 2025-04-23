@@ -1,4 +1,12 @@
 /*************************************************************************
+# IMPORT
+*************************************************************************/
+import { useEffect, useState } from 'react';
+import dayjs from 'dayjs';
+
+
+
+/*************************************************************************
 # UTILITY FUNCTIONS
 *************************************************************************/
 
@@ -52,7 +60,7 @@ function isRecipeResponse(data: unknown): data is RecipeResponse {
 
 // ALIAS
 type ChefResponse = {
-  birthDate?: Date,
+  birthDate?: unknown,
   message?: string,
   [key: string]: unknown,
 }
@@ -64,7 +72,7 @@ function isChefResponse(data: unknown): data is ChefResponse {
     typeof data === 'object' && data !== null &&
     // Verifica esistenza chiave "userId" e il suo TYPE
     (
-      'birthDate' in data && (data as ChefResponse).birthDate instanceof Date ||
+      'birthDate' in data && ((data as ChefResponse).birthDate instanceof Date || typeof (data as ChefResponse).birthDate === 'string') ||
       'message' in data && typeof (data as ChefResponse).message === 'string'
     )
   );
@@ -76,12 +84,14 @@ function isChefResponse(data: unknown): data is ChefResponse {
 # GET DATA
 *************************************************************************/
 
-async function getChefBirthday(id: number): Promise<unknown> {
+async function getChefBirthday(id: number): Promise<Date | string | undefined> {
+
+  // FETCH - RECIPE
 
   // Dichiaro qui la variabile dove conterrò il risutato della fetch della Recipe.
   let recipe: unknown;
 
-  // Uso il TRY CATCH perchè è qui che voglio intercettare il mio ERROR della fetch se si verifica.
+  // Uso il TRY-CATCH perchè è qui che voglio intercettare il mio ERROR della fetch se si verifica.
   try {
     recipe = await fetchJson(`https://dummyjson.com/recipes/${id}`);
     console.log('Ricetta:', recipe);
@@ -103,10 +113,10 @@ async function getChefBirthday(id: number): Promise<unknown> {
 
 
 
-  // Dichiaro qui la variabile dove conterrò il risutato della fetch dello Chef.
+  // FETCH - CHEF
+
   let chef: unknown;
 
-  // FETCH - CHEF
   try {
     chef = await fetchJson(`https://dummyjson.com/users/${recipe.userId}`);
     console.log('Chef:', chef);
@@ -124,20 +134,24 @@ async function getChefBirthday(id: number): Promise<unknown> {
     throw new Error(chef.message);
   }
 
-
-
-
-
-
-
-
-
-  // // Formattazione della data tramite libreria DAYJS (vedi script importato su index.html)
-  // const formattedBirthdayDate = dayjs(chef.birthDate).format('DD/MM/YYYY');
-
-  // // Il RETURN avviene solo nel caso in cui non ci siano errori.
-  // return formattedBirthdayDate;
+  // RESULT
+  // Siccome "chef.birthDate" viene ancora considerato come "unknown", devo specificare che questo RETURN riceverà un valore di tipo STRING o DATE.
+  return dayjs(chef.birthDate as string | Date).format('DD/MM/YYYY');
 }
+
+
+
+// IIFE ( immediately invoked function expression )
+(async () => {
+  try {
+    const birthday = await getChefBirthday(1);
+    console.log('Data di nascita dello chef:', birthday);
+  } catch (error) {
+    console.error('Errore durante il recupero della data di nascita:', error);
+  }
+})();
+
+
 
 
 
@@ -147,7 +161,7 @@ function App() {
 
   return (
     <>
-      App content
+      {`Data di nascita dello chef: `}
     </>
   )
 }
