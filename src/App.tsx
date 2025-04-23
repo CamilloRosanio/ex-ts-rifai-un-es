@@ -136,7 +136,7 @@ async function getChefBirthday(id: number): Promise<Date | string | undefined> {
 
   // RESULT
   // Siccome "chef.birthDate" viene ancora considerato come "unknown", devo specificare che questo RETURN riceverà un valore di tipo STRING o DATE.
-  const result = dayjs(chef.birthDate as string | Date).format('DD/MM/YYYY');
+  const result = dayjs(chef.birthDate as string | Date).format('DD/MMM/YYYY');
   console.log(`Data di nascita dello chef con ID ${recipe.userId}: ${result}`)
   return result;
 }
@@ -184,11 +184,11 @@ function App() {
   return (
     <>
       {error ? (
-        <p>Errore: {error}</p>
+        <h1>Errore: {error}</h1>
       ) : birthday ? (
-        <p>Data di nascita dello Chef: {birthday}</p>
+        <h1>Data di nascita dello Chef: {birthday}</h1>
       ) : (
-        <p>Fetch in corso</p>
+        <h1>Fetch in corso</h1>
       )}
     </>
   );
